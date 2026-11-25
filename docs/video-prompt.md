@@ -1,0 +1,1 @@
+Cinematic abstract tech background, slow drifting dark indigo and cyan light streaks through volumetric fog, fine floating particles, shallow depth of field, anamorphic bokeh, subtle film grain, deep near-black negative space center-left for text, slow camera push-in, seamless loop, no text, no logos, no people, 16:9, 10 seconds.
