@@ -193,6 +193,18 @@
       #f5f6f8 8%,
       rgba(255, 255, 255, 0.08) 100%
     );
+    --curtain-bg-left: linear-gradient(
+      155deg,
+      #090e1c 0%,
+      #060912 62%,
+      #0b1426 100%
+    );
+    --curtain-bg-right: linear-gradient(
+      205deg,
+      #101829 0%,
+      #080c15 58%,
+      #1a1414 100%
+    );
   }
 
   [data-theme="light"] {
@@ -265,6 +277,18 @@
       180deg,
       #14161c 10%,
       rgba(20, 22, 28, 0.1) 100%
+    );
+    --curtain-bg-left: linear-gradient(
+      155deg,
+      #f4f2ec 0%,
+      #e7e4dc 64%,
+      #dde1e9 100%
+    );
+    --curtain-bg-right: linear-gradient(
+      205deg,
+      #ebe8e1 0%,
+      #f3f0ea 58%,
+      #efe3de 100%
     );
   }
 }
@@ -355,11 +379,26 @@
     [data-skill-subtitle],
     [data-skill-items],
     [data-skill-glyph],
+    [data-curtain-stage],
+    [data-contact-parallax],
+    [data-footer-word],
+    [data-hero-top],
+    [data-marquee-parallax],
+    [data-ticker-scrub],
+    [data-about-star],
+    [data-artwork-parallax],
+    [data-env-terminal],
+    [data-contact-cta],
+    [data-line-draw],
     .hero-reveal {
       opacity: 1 !important;
       transform: none !important;
       translate: none !important;
       scale: none !important;
+    }
+    [data-curtain-left],
+    [data-curtain-right] {
+      display: none !important;
     }
   }
 
@@ -408,6 +447,23 @@
     }
     50% {
       opacity: 0.15;
+    }
+  }
+  @keyframes eq-pulse {
+    0%,
+    100% {
+      transform: scaleY(0.65);
+    }
+    50% {
+      transform: scaleY(1.18);
+    }
+  }
+  @keyframes ecg-sweep {
+    from {
+      stroke-dashoffset: 1000;
+    }
+    to {
+      stroke-dashoffset: 0;
     }
   }
 
@@ -537,5 +593,110 @@
         opacity: 0;
       }
     }
+  }
+
+  .curtain-leaf-left {
+    background: var(--curtain-bg-left);
+  }
+
+  .curtain-leaf-right {
+    background: var(--curtain-bg-right);
+  }
+
+  .curtain-grid-pattern {
+    background-image:
+      linear-gradient(
+        to right,
+        var(--color-border-subtle) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        var(--color-border-subtle) 1px,
+        transparent 1px
+      );
+    background-size: 48px 48px;
+  }
+
+  .bento-spotlight-ring {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, transparent),
+      0 26px 64px color-mix(in srgb, var(--color-accent) 16%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  .faq-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out);
+  }
+
+  .faq-panel[data-open="false"] {
+    visibility: hidden;
+    transition:
+      grid-template-rows var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out),
+      visibility 0s linear var(--duration-base);
+  }
+
+  .faq-panel[data-open="true"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .faq-panel > div {
+    overflow: hidden;
+  }
+
+  [data-curtain-section]:has([data-curtain-stage] :focus-visible)
+    [data-curtain-left],
+  [data-curtain-section]:has([data-curtain-stage] :focus-visible)
+    [data-curtain-right] {
+    opacity: 0 !important;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  [data-curtain-section]:has([data-curtain-stage] :focus-visible)
+    [data-curtain-stage] {
+    opacity: 1 !important;
+  }
+
+  .artwork-pill {
+    left: 0;
+    top: 0;
+    scale: 0.9;
+    transform: translate3d(var(--pill-x, -999px), var(--pill-y, -999px), 0)
+      translate(-50%, -50%);
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      scale var(--duration-fast) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    [data-artwork-hover]:hover .artwork-pill {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  [data-line-draw] {
+    transform-origin: left center;
+    transform: scaleX(1);
+    transition: transform var(--duration-slow) var(--ease-out)
+      var(--reveal-delay, 0ms);
+  }
+  [data-line-draw].reveal-pending {
+    opacity: 1;
+    translate: none;
+    transform: scaleX(0);
+  }
+  [data-line-draw].is-visible {
+    opacity: 1;
+    translate: none;
+    transform: scaleX(1);
   }
 }
