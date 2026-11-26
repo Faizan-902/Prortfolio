@@ -108,6 +108,7 @@ export default function ProjectCaseStudy({ project }: { project: Project }) {
   return (
     <>
       <button
+        id={`case-study-btn-${project.kind}`}
         type="button"
         className="case-study-button underline-sweep inline-flex min-h-10 items-center border-0 border-b border-current bg-transparent pb-0.5 font-mono text-[12px] whitespace-nowrap uppercase transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:text-accent"
         onClick={() => dialog.current?.showModal()}

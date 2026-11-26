@@ -23,17 +23,22 @@ export function SectionLabel({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "mb-12 flex items-center justify-between border-t border-border-subtle pt-4 font-mono text-xs tracking-[var(--tracking-mono)] text-ink-secondary",
-        className,
-      )}
-    >
-      <span className="flex items-center gap-2">
-        <b className="text-[1.2rem] leading-none font-normal text-accent">✳</b>{" "}
-        {children}
-      </span>
-      <span>@FAIZAN902</span>
+    <div className={cn("relative mb-12 pt-4", className)}>
+      <span
+        data-reveal
+        data-line-draw
+        aria-hidden="true"
+        className="pointer-events-none absolute top-0 right-0 left-0 h-px bg-border-subtle"
+      />
+      <div className="flex items-center justify-between font-mono text-xs tracking-[var(--tracking-mono)] text-ink-secondary">
+        <span className="flex items-center gap-2">
+          <b className="text-[1.2rem] leading-none font-normal text-accent">
+            ✳
+          </b>{" "}
+          {children}
+        </span>
+        <span>@FAIZAN902</span>
+      </div>
     </div>
   );
 }
@@ -88,12 +93,11 @@ export function SplitAction({
 export function GlassCard({
   children,
   className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
+      {...props}
       className={cn(
         "rounded-[var(--radius-md)] border border-border-subtle bg-glass shadow-card",
         className,
