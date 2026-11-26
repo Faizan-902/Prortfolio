@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { projects, skills, socialLinks } from "@/data/portfolio";
 import { cn } from "@/lib/cn";
 import BackgroundVideo from "./BackgroundVideo";
+import CurtainBentoSection from "./CurtainBentoSection";
+import FaqAccordion from "./FaqAccordion";
 import MotionObserver from "./MotionObserver";
 import { ProjectArtwork } from "./ProjectArtwork";
 import ProjectCaseStudy from "./ProjectCaseStudy";
@@ -29,7 +31,7 @@ const faqs = [
     "What’s the best way to reach you?",
     "Email me at 2102508769@svyasa-sas.edu.in, or connect with me on LinkedIn. I’d love to hear what you’re working on.",
   ],
-];
+] as const;
 
 const skillArtColors = [
   "bg-[#bdc0bf]",
@@ -276,8 +278,14 @@ export default function PortfolioExperience() {
           className="relative flex min-h-svh flex-col justify-between gap-6 overflow-clip px-[var(--spacing-gutter)] pt-[104px] pb-6"
           aria-label="Mohd Faizan Khan, software engineer"
         >
-          <div className="mx-auto flex w-full max-w-[var(--container-max)] flex-col items-start justify-between gap-6 sm:flex-row">
-            <GlassCard className="w-full max-w-[380px] p-6">
+          <div
+            data-hero-top
+            className="mx-auto flex w-full max-w-[var(--container-max)] flex-col items-start justify-between gap-6 will-change-transform sm:flex-row"
+          >
+            <GlassCard
+              data-spotlight
+              className="spotlight-glow w-full max-w-[380px] p-6"
+            >
               <p className="hero-reveal mb-3 font-mono text-xs leading-normal text-ink-secondary [animation-delay:0ms]">
                 Mohd Faizan Khan / Software engineer
               </p>
@@ -383,39 +391,41 @@ export default function PortfolioExperience() {
           <div className="mx-auto max-w-[var(--container-max)]">
             <SectionLabel className="mb-12">MY BUILDING BLOCKS</SectionLabel>
             <div className="mask-marquee overflow-hidden">
-              <div
-                data-loop-anim
-                className="flex w-max [animation:var(--animate-marquee)] gap-[clamp(2.5rem,6vw,5.5rem)] will-change-transform"
-              >
-                {[
-                  ...[
-                    "React",
-                    "Node.js",
-                    "Python",
-                    "PostgreSQL",
-                    "JavaScript",
-                    "Docker",
-                  ],
-                  ...[
-                    "React",
-                    "Node.js",
-                    "Python",
-                    "PostgreSQL",
-                    "JavaScript",
-                    "Docker",
-                  ],
-                ].map((t, i) => (
-                  <span
-                    key={i}
-                    aria-hidden={i >= 6}
-                    className="flex items-center gap-2 font-display text-[clamp(1.35rem,2.2vw,1.9rem)] font-semibold tracking-[var(--tracking-tight)] whitespace-nowrap text-ink-secondary"
-                  >
-                    <b className="font-mono text-[1.25em] font-normal text-accent">
-                      {["⚛", "⬡", "⌘", "◉", "JS", "▧"][i % 6]}
-                    </b>
-                    {t}
-                  </span>
-                ))}
+              <div data-marquee-parallax className="will-change-transform">
+                <div
+                  data-loop-anim
+                  className="flex w-max [animation:var(--animate-marquee)] gap-[clamp(2.5rem,6vw,5.5rem)] will-change-transform"
+                >
+                  {[
+                    ...[
+                      "React",
+                      "Node.js",
+                      "Python",
+                      "PostgreSQL",
+                      "JavaScript",
+                      "Docker",
+                    ],
+                    ...[
+                      "React",
+                      "Node.js",
+                      "Python",
+                      "PostgreSQL",
+                      "JavaScript",
+                      "Docker",
+                    ],
+                  ].map((t, i) => (
+                    <span
+                      key={i}
+                      aria-hidden={i >= 6}
+                      className="flex items-center gap-2 font-display text-[clamp(1.35rem,2.2vw,1.9rem)] font-semibold tracking-[var(--tracking-tight)] whitespace-nowrap text-ink-secondary"
+                    >
+                      <b className="font-mono text-[1.25em] font-normal text-accent">
+                        {["⚛", "⬡", "⌘", "◉", "JS", "▧"][i % 6]}
+                      </b>
+                      {t}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -433,7 +443,11 @@ export default function PortfolioExperience() {
                 className="flex gap-6 font-mono text-xs leading-[1.75] text-ink-secondary"
                 data-reveal
               >
-                <span className="text-[3.5rem] leading-none text-accent">
+                <span
+                  data-about-star
+                  aria-hidden="true"
+                  className="inline-block self-start text-[3.5rem] leading-none text-accent will-change-transform"
+                >
                   ✳
                 </span>
                 <p className="max-w-[65ch]">
@@ -466,14 +480,20 @@ export default function PortfolioExperience() {
                 ["04", "SELECTED PROJECTS"],
                 ["8.56", "CGPA / 10.0"],
                 ["2029", "B.TECH GRADUATION"],
-              ].map(([num, label]) => (
+              ].map(([num, label], index) => (
                 <div
                   key={label}
                   data-reveal
                   data-tilt
+                  data-stat-card={index}
                   className="tilt-glow rounded-[var(--radius-md)] border border-border-subtle bg-glass px-6 py-8 shadow-card transition-[border-color,background-color,box-shadow,translate] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:-translate-y-1 hover:border-border-strong hover:bg-glass-hover hover:shadow-elevated"
                 >
-                  <strong className="mb-3 block font-display text-[clamp(2.75rem,5.8vw,5.5rem)] leading-[1.05] font-medium tracking-[var(--tracking-tightest)]">
+                  <strong
+                    data-stat-counter={num}
+                    data-stat-start={num === "2029" ? "2025" : "0"}
+                    aria-label={num}
+                    className="mb-3 block font-display text-[clamp(2.75rem,5.8vw,5.5rem)] leading-[1.05] font-medium tracking-[var(--tracking-tightest)] tabular-nums"
+                  >
                     {num}
                   </strong>
                   <span className="font-mono text-[11px] tracking-[var(--tracking-mono)] text-ink-muted">
@@ -489,18 +509,20 @@ export default function PortfolioExperience() {
           className="overflow-hidden border-b border-border-subtle bg-section-tint pt-3 pb-16"
           aria-hidden="true"
         >
-          <div
-            data-loop-anim
-            className="flex w-max [animation:var(--animate-ticker)] items-center gap-8 font-display text-[clamp(3.75rem,9.5vw,10rem)] leading-none font-semibold tracking-[var(--tracking-tightest)] text-ink will-change-transform"
-          >
-            THINK <b className="font-normal text-accent">+</b> BUILD{" "}
-            <b className="font-normal text-accent">+</b> REFINE{" "}
-            <b className="font-normal text-accent">+</b> IMPACT{" "}
-            <b className="font-normal text-accent">+</b> THINK{" "}
-            <b className="font-normal text-accent">+</b> BUILD{" "}
-            <b className="font-normal text-accent">+</b> REFINE{" "}
-            <b className="font-normal text-accent">+</b> IMPACT{" "}
-            <b className="font-normal text-accent">+</b>
+          <div data-ticker-scrub className="will-change-transform">
+            <div
+              data-loop-anim
+              className="flex w-max [animation:var(--animate-ticker)] items-center gap-8 font-display text-[clamp(3.75rem,9.5vw,10rem)] leading-none font-semibold tracking-[var(--tracking-tightest)] text-ink will-change-transform"
+            >
+              THINK <b className="font-normal text-accent">+</b> BUILD{" "}
+              <b className="font-normal text-accent">+</b> REFINE{" "}
+              <b className="font-normal text-accent">+</b> IMPACT{" "}
+              <b className="font-normal text-accent">+</b> THINK{" "}
+              <b className="font-normal text-accent">+</b> BUILD{" "}
+              <b className="font-normal text-accent">+</b> REFINE{" "}
+              <b className="font-normal text-accent">+</b> IMPACT{" "}
+              <b className="font-normal text-accent">+</b>
+            </div>
           </div>
         </div>
 
@@ -604,8 +626,30 @@ export default function PortfolioExperience() {
                       </div>
                     </div>
                   </div>
-                  <div className="relative min-h-[360px] overflow-clip rounded-[var(--radius-md)] border border-border-subtle min-[901px]:min-h-[480px]">
-                    <ProjectArtwork kind={p.kind} />
+                  <div
+                    data-artwork-hover
+                    className="group/art relative min-h-[360px] overflow-clip rounded-[var(--radius-md)] border border-border-subtle min-[901px]:min-h-[480px]"
+                  >
+                    <div className="absolute inset-0 transform-gpu transition-transform duration-[var(--duration-slow)] ease-[var(--ease-out)] group-hover/art:scale-[1.03] motion-reduce:transform-none">
+                      <ProjectArtwork kind={p.kind} />
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Open ${p.name} engineering case study`}
+                      onClick={() =>
+                        document
+                          .getElementById(`case-study-btn-${p.kind}`)
+                          ?.click()
+                      }
+                      className="absolute inset-0 z-[5] cursor-pointer rounded-[var(--radius-md)] bg-transparent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none focus-visible:ring-inset"
+                    />
+                    <span
+                      data-cursor-pill
+                      aria-hidden="true"
+                      className="artwork-pill pointer-events-none absolute z-10 rounded-[var(--radius-xs)] bg-accent-solid px-3 py-1.5 font-mono text-[10px] tracking-[var(--tracking-mono)] whitespace-nowrap text-accent-ink opacity-0 shadow-elevated"
+                    >
+                      CASE STUDY ↗
+                    </span>
                   </div>
                 </article>
               ))}
@@ -742,159 +786,21 @@ export default function PortfolioExperience() {
           </div>
         </section>
 
-        <section className="bg-section-tint px-[var(--spacing-gutter)] py-[var(--spacing-section)]">
-          <div className="mx-auto max-w-[var(--container-max)]">
-            <SectionLabel>BEYOND THE CODE</SectionLabel>
-            <h2
-              className="mx-auto mb-16 text-center font-display text-2xl leading-[var(--leading-snug)] font-semibold tracking-[var(--tracking-tight)]"
-              data-reveal
-            >
-              Always learning.
-              <br />
-              Always moving forward.
-            </h2>
-            <div className="grid grid-cols-1 gap-4 min-[901px]:grid-cols-2">
-              <article
-                className="tilt-glow flex flex-col rounded-[var(--radius-md)] border border-border-subtle bg-glass p-[clamp(1.75rem,3vw,2.5rem)] shadow-card transition-[border-color,background-color,box-shadow,translate] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:-translate-y-1 hover:border-border-strong hover:bg-glass-hover hover:shadow-elevated"
-                data-reveal
-                data-tilt
-              >
-                <span className="font-mono text-xs text-accent">
-                  ↗ EDUCATION / 2025—2029
-                </span>
-                <h3 className="mt-6 mb-4 font-display text-xl leading-[1.15] font-medium tracking-[var(--tracking-snug)]">
-                  Computer Science.
-                  <br />
-                  Real-world curiosity.
-                </h3>
-                <p className="max-w-[65ch] leading-[var(--leading-body)] text-ink-secondary">
-                  Bachelor of Technology in Computer Science
-                </p>
-                <p className="mb-2 max-w-[65ch] text-base leading-[var(--leading-body)] text-ink-secondary">
-                  Newton School of Technology,
-                  <br />
-                  S-VYASA, Bengaluru
-                </p>
-                <div className="mt-auto flex items-center justify-between border-t border-border-subtle pt-6">
-                  <strong className="font-display text-[clamp(3rem,4.5vw,4.4rem)] font-medium tracking-[var(--tracking-tightest)]">
-                    8.56
-                    <span className="text-[1.75rem] text-ink-muted">/10</span>
-                  </strong>
-                  <span className="font-mono text-[11px] text-ink-muted">
-                    CURRENT CGPA
-                  </span>
-                </div>
-              </article>
-
-              <div className="rounded-[var(--radius-md)] border border-border-subtle bg-glass px-[clamp(1.5rem,2.5vw,2rem)] shadow-card">
-                {[
-                  [
-                    "01",
-                    "ICPC Preliminary Online Round",
-                    "Team Three Pointerss · 3 problems solved · 2,305th rank in the Final Regional Selection Pool.",
-                  ],
-                  [
-                    "02",
-                    "Inclusive open source",
-                    "Linux Foundation LFC102 · Inclusive Open Source Community Orientation · November 2026.",
-                  ],
-                  [
-                    "03",
-                    "Campfire Hackathon",
-                    "Team-based game development, rapid prototyping, frontend development, and collaborative problem-solving.",
-                  ],
-                ].map(([id, title, text]) => (
-                  <article
-                    className="flex gap-6 border-b border-border-subtle py-6 last:border-b-0"
-                    data-reveal
-                    key={id}
-                  >
-                    <span className="font-mono text-xs text-accent">{id}.</span>
-                    <div>
-                      <h3 className="mb-2 font-display text-md font-medium tracking-[var(--tracking-snug)]">
-                        {title}
-                      </h3>
-                      <p className="max-w-[65ch] text-base leading-[var(--leading-body)] text-ink-secondary">
-                        {text}
-                      </p>
-                      {id === "02" && (
-                        <a
-                          className="underline-sweep mt-2 inline-flex min-h-9 items-center border-b border-border-strong font-mono text-[11px] text-ink transition-colors duration-[var(--duration-fast)] hover:text-accent"
-                          href="https://drive.google.com/file/d/1WgnaVz9RDnPQgcXDWlOW48WAYug8G4NN/view?usp=sharing"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          VIEW CERTIFICATE ↗
-                        </a>
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          className="flex justify-center bg-section-tint px-[var(--spacing-gutter)] py-[var(--spacing-section)]"
-          aria-label="My approach"
-        >
-          <div
-            className="approach-card tilt-glow w-full max-w-[820px] rounded-[var(--radius-lg)] border border-border-subtle bg-glass p-[clamp(2rem,5vw,4rem)] text-center shadow-elevated"
-            data-reveal
-            data-tilt
-          >
-            <span className="font-mono text-xs text-accent">
-              THE WAY I BUILD
-            </span>
-            <h2 className="my-4 font-display text-3xl leading-[var(--leading-snug)] font-semibold tracking-[var(--tracking-tight)]">
-              Good code.
-              <br />
-              Clear thinking.
-              <br />
-              <em className="font-[Georgia,serif] tracking-[-0.04em] text-accent italic">
-                Meaningful impact.
-              </em>
-            </h2>
-            <p className="mx-auto mb-8 max-w-[65ch] text-md leading-[var(--leading-body)] text-ink-secondary">
-              Understand the problem. Question the assumptions.
-              <br />
-              Build with intent. Keep improving.
-            </p>
-            <SplitAction href="#contact">LET’S MAKE SOMETHING</SplitAction>
-          </div>
-        </section>
+        <CurtainBentoSection />
 
         <section className="bg-section-tint px-[var(--spacing-gutter)] py-[var(--spacing-section)]">
           <div className="mx-auto max-w-[var(--container-max)]">
             <SectionLabel>A FEW MORE THINGS</SectionLabel>
             <div className="grid grid-cols-1 gap-12 min-[901px]:grid-cols-2">
               <h2
-                className="font-display text-2xl leading-[var(--leading-snug)] font-semibold tracking-[var(--tracking-tight)]"
+                className="font-display text-2xl leading-[var(--leading-snug)] font-semibold tracking-[var(--tracking-tight)] min-[901px]:sticky min-[901px]:top-28 min-[901px]:self-start"
                 data-reveal
               >
                 Before we get started,
                 <br />
                 here’s what matters.
               </h2>
-              <div>
-                {faqs.map(([q, a]) => (
-                  <details
-                    key={q}
-                    className="group/faq border-b border-border-subtle py-4 first:pt-0"
-                  >
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-display text-md tracking-[var(--tracking-snug)] transition-colors duration-[var(--duration-fast)] hover:text-accent [&::-webkit-details-marker]:hidden">
-                      {q}
-                      <span className="font-mono text-[1.4rem] font-normal transition-[transform,color] duration-[var(--duration-base)] ease-[var(--ease-out)] group-open/faq:rotate-45 group-open/faq:text-accent">
-                        +
-                      </span>
-                    </summary>
-                    <p className="max-w-[65ch] pt-3 pr-8 text-base leading-[var(--leading-relaxed)] text-ink-secondary">
-                      {a}
-                    </p>
-                  </details>
-                ))}
-              </div>
+              <FaqAccordion items={faqs} />
             </div>
           </div>
         </section>
@@ -902,13 +808,19 @@ export default function PortfolioExperience() {
         <section
           id="contact"
           data-nav-section="contact"
-          className="border-t border-border-subtle bg-section-deep px-[var(--spacing-gutter)] pt-[var(--spacing-section)] pb-0"
+          className="relative overflow-clip border-t border-border-subtle bg-section-deep px-[var(--spacing-gutter)] pt-[var(--spacing-section)] pb-0"
         >
-          <div className="mx-auto max-w-[var(--container-max)]">
+          <div
+            data-contact-parallax
+            aria-hidden="true"
+            className="curtain-grid-pattern pointer-events-none absolute inset-x-0 -inset-y-12 z-0 [mask-image:radial-gradient(ellipse_80%_75%_at_50%_50%,#000_25%,transparent_80%)] opacity-45 will-change-transform"
+          />
+          <div className="relative z-[1] mx-auto max-w-[var(--container-max)]">
             <SectionLabel>HAVE SOMETHING IN MIND?</SectionLabel>
             <div className="flex flex-col items-start justify-between gap-8 pt-4 pb-16 sm:flex-row sm:items-center">
               <h2
-                className="font-display text-[length:var(--text-display)] leading-[1.03] font-semibold tracking-[var(--tracking-tightest)]"
+                data-contact-heading
+                className="font-display text-[length:var(--text-display)] leading-[1.03] font-semibold tracking-[var(--tracking-tightest)] will-change-transform"
                 data-reveal
               >
                 Let’s make
@@ -917,13 +829,18 @@ export default function PortfolioExperience() {
                 <br />
                 to ignore<span className="text-accent">.</span>
               </h2>
-              <a
-                href={email}
-                data-magnetic
-                className="flex h-[clamp(120px,12vw,180px)] w-[clamp(120px,12vw,180px)] shrink-0 [transform:translate3d(var(--mx,0px),var(--my,0px),0)] items-center justify-center gap-3 self-end rounded-full border border-border-strong bg-glass font-mono text-xs shadow-card transition-[background-color,border-color,color,rotate,scale] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:scale-[1.04] hover:-rotate-[8deg] hover:border-accent-solid hover:bg-accent-solid hover:text-accent-ink sm:mr-[4vw] sm:self-auto"
+              <div
+                data-contact-cta
+                className="self-end will-change-transform sm:mr-[4vw] sm:self-auto"
               >
-                LET’S TALK <span className="text-[1.45rem]">↗</span>
-              </a>
+                <a
+                  href={email}
+                  data-magnetic
+                  className="flex h-[clamp(120px,12vw,180px)] w-[clamp(120px,12vw,180px)] shrink-0 [transform:translate3d(var(--mx,0px),var(--my,0px),0)] items-center justify-center gap-3 rounded-full border border-border-strong bg-glass font-mono text-xs shadow-card transition-[background-color,border-color,color,rotate,scale] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:scale-[1.04] hover:-rotate-[8deg] hover:border-accent-solid hover:bg-accent-solid hover:text-accent-ink"
+                >
+                  LET’S TALK <span className="text-[1.45rem]">↗</span>
+                </a>
+              </div>
             </div>
             <div className="flex flex-wrap justify-between gap-4 border-t border-border-subtle py-6 font-mono text-[12px] text-ink-secondary">
               <a className="hover:text-accent" href={email}>
@@ -959,7 +876,8 @@ export default function PortfolioExperience() {
             </div>
           </div>
           <div
-            className="word-gradient-footer bg-clip-text pb-2 font-display text-[length:var(--text-footer)] leading-[0.9] font-bold tracking-[var(--tracking-tightest)] text-transparent"
+            data-footer-word
+            className="word-gradient-footer bg-clip-text pb-2 font-display text-[length:var(--text-footer)] leading-[0.9] font-bold tracking-[var(--tracking-tightest)] text-transparent will-change-transform"
             aria-hidden="true"
           >
             FAIZAN

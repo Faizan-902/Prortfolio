@@ -4,10 +4,15 @@ import { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import {
+  clampArtworkPill,
+  computeCurtainState,
+  formatStatCounterValue,
+} from "@/lib/motionConfig";
 
 function bindPointerDecay(
   el: HTMLElement,
-  computeTarget: (nx: number, ny: number) => [number, number],
+  computeTarget: (nx: number, ny: number, rect: DOMRect) => [number, number],
   onFlush: (cx: number, cy: number, px: number, py: number) => void,
   hasResetDecay: boolean,
 ): () => void {
@@ -44,9 +49,14 @@ function bindPointerDecay(
     if (!raf) raf = window.requestAnimationFrame(step);
   };
 
-  const onEnter = () => {
+  const onEnter = (e: PointerEvent) => {
     rect = el.getBoundingClientRect();
     settling = false;
+    if (rect.width === 0 || rect.height === 0) return;
+    px = (e.clientX - rect.left) / rect.width;
+    py = (e.clientY - rect.top) / rect.height;
+    [targetX, targetY] = computeTarget(px, py, rect);
+    schedule();
   };
 
   const onMove = (e: PointerEvent) => {
@@ -55,7 +65,7 @@ function bindPointerDecay(
     px = (e.clientX - rect.left) / rect.width;
     py = (e.clientY - rect.top) / rect.height;
     settling = false;
-    [targetX, targetY] = computeTarget(px, py);
+    [targetX, targetY] = computeTarget(px, py, rect);
     schedule();
   };
 
@@ -437,13 +447,16 @@ export default function MotionObserver() {
         );
       }
 
+      const heroTop = document.querySelector<HTMLElement>("[data-hero-top]");
       const heroParallax = document.querySelector<HTMLElement>(
         "[data-hero-parallax]",
       );
       const heroSection = document.querySelector<HTMLElement>("#home");
-      if (heroParallax && heroSection) {
+      if (heroSection && heroParallax) {
         gsap.to(heroParallax, {
-          y: -24,
+          y: -28,
+          scale: 0.96,
+          opacity: 0.72,
           ease: "none",
           scrollTrigger: {
             trigger: heroSection,
@@ -452,6 +465,119 @@ export default function MotionObserver() {
             scrub: true,
           },
         });
+      }
+      if (heroSection && heroTop) {
+        gsap.to(heroTop, {
+          y: -18,
+          opacity: 0.55,
+          ease: "none",
+          scrollTrigger: {
+            trigger: heroSection,
+            start: "top top",
+            end: "75% top",
+            scrub: true,
+          },
+        });
+      }
+
+      const marqueeParallax = document.querySelector<HTMLElement>(
+        "[data-marquee-parallax]",
+      );
+      if (marqueeParallax) {
+        gsap.fromTo(
+          marqueeParallax,
+          { x: 24 },
+          {
+            x: -36,
+            ease: "none",
+            scrollTrigger: {
+              trigger: marqueeParallax,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          },
+        );
+      }
+
+      const aboutSection = document.querySelector<HTMLElement>("#about");
+      const aboutStar =
+        document.querySelector<HTMLElement>("[data-about-star]");
+      if (aboutSection && aboutStar) {
+        gsap.fromTo(
+          aboutStar,
+          { rotation: 0 },
+          {
+            rotation: 180,
+            ease: "none",
+            scrollTrigger: {
+              trigger: aboutSection,
+              start: "top 85%",
+              end: "bottom 20%",
+              scrub: true,
+            },
+          },
+        );
+      }
+
+      const tickerScrub = document.querySelector<HTMLElement>(
+        "[data-ticker-scrub]",
+      );
+      if (tickerScrub) {
+        gsap.fromTo(
+          tickerScrub,
+          { x: -32 },
+          {
+            x: 42,
+            ease: "none",
+            scrollTrigger: {
+              trigger: tickerScrub,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          },
+        );
+      }
+
+      document
+        .querySelectorAll<HTMLElement>("[data-artwork-parallax]")
+        .forEach((art) => {
+          gsap.fromTo(
+            art,
+            { yPercent: -5 },
+            {
+              yPercent: 5,
+              ease: "none",
+              scrollTrigger: {
+                trigger: art.closest("article") || art,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            },
+          );
+        });
+
+      const envTerminal = document.querySelector<HTMLElement>(
+        "[data-env-terminal]",
+      );
+      if (envTerminal) {
+        gsap.fromTo(
+          envTerminal,
+          { rotation: -7, y: 12 },
+          {
+            rotation: 0,
+            y: -8,
+            ease: "none",
+            scrollTrigger: {
+              trigger: envTerminal.closest("article") || envTerminal,
+              start: "top 90%",
+              end: "bottom 25%",
+              scrub: true,
+            },
+          },
+        );
       }
 
       const wordCleanupFns: Array<() => void> = [];
@@ -500,11 +626,212 @@ export default function MotionObserver() {
         });
 
         setupSkillsScrub(true);
+
+        const curtainSection = document.querySelector<HTMLElement>(
+          "[data-curtain-section]",
+        );
+        const curtainLeft = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-left]",
+        );
+        const curtainRight = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-right]",
+        );
+        const curtainStage = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-stage]",
+        );
+        const curtainBentoLeft = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-bento-left]",
+        );
+        const curtainBentoRight = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-bento-right]",
+        );
+        const curtainArtLeft = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-art-left]",
+        );
+        const curtainArtRight = curtainSection?.querySelector<HTMLElement>(
+          "[data-curtain-art-right]",
+        );
+
+        let curtainCleanup: (() => void) | undefined;
+        if (curtainSection && curtainLeft && curtainRight && curtainStage) {
+          const setLeft = gsap.quickSetter(curtainLeft, "xPercent");
+          const setRight = gsap.quickSetter(curtainRight, "xPercent");
+          const setStageScale = gsap.quickSetter(curtainStage, "scale");
+          const setStageOpacity = gsap.quickSetter(curtainStage, "opacity");
+          const setBentoLeftY = curtainBentoLeft
+            ? gsap.quickSetter(curtainBentoLeft, "y", "px")
+            : undefined;
+          const setBentoRightY = curtainBentoRight
+            ? gsap.quickSetter(curtainBentoRight, "y", "px")
+            : undefined;
+          const setArtLeftRot = curtainArtLeft
+            ? gsap.quickSetter(curtainArtLeft, "rotation")
+            : undefined;
+          const setArtRightX = curtainArtRight
+            ? gsap.quickSetter(curtainArtRight, "x", "px")
+            : undefined;
+
+          const applyCurtain = (progress: number) => {
+            const state = computeCurtainState(progress);
+            const norm = Math.min(Math.max(progress / 0.72, 0), 1);
+            setLeft(state.leftXPercent);
+            setRight(state.rightXPercent);
+            setStageScale(state.stageScale);
+            setStageOpacity(state.stageOpacity);
+            setBentoLeftY?.((1 - norm) * 26);
+            setBentoRightY?.((1 - norm) * 38);
+            setArtLeftRot?.(-18 * norm);
+            setArtRightX?.(18 * norm);
+          };
+
+          applyCurtain(0);
+          const trigger = ScrollTrigger.create({
+            trigger: curtainSection,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: true,
+            onUpdate: (self) => applyCurtain(self.progress),
+          });
+          const onStageFocusIn = () => {
+            if (trigger.progress >= 0.72) return;
+            const targetY =
+              curtainSection.offsetTop +
+              Math.round(
+                (curtainSection.offsetHeight - window.innerHeight) * 0.76,
+              );
+            if (activeLenis) {
+              activeLenis.scrollTo(targetY);
+            } else {
+              window.scrollTo({ top: targetY, behavior: "smooth" });
+            }
+          };
+          curtainStage.addEventListener("focusin", onStageFocusIn);
+          curtainCleanup = () => {
+            curtainStage.removeEventListener("focusin", onStageFocusIn);
+            trigger.kill();
+            const targets = [
+              curtainLeft,
+              curtainRight,
+              curtainStage,
+              curtainBentoLeft,
+              curtainBentoRight,
+              curtainArtLeft,
+              curtainArtRight,
+            ].filter(Boolean);
+            gsap.set(targets, {
+              clearProps: "transform,opacity",
+            });
+          };
+        }
+
+        const statCards = gsap.utils.toArray<HTMLElement>("[data-stat-card]");
+        statCards.forEach((card, i) => {
+          const offset = i % 2 === 0 ? 14 : -10;
+          gsap.fromTo(
+            card,
+            { y: offset },
+            {
+              y: -offset,
+              ease: "none",
+              scrollTrigger: {
+                trigger: card,
+                start: "top 95%",
+                end: "bottom 15%",
+                scrub: true,
+              },
+            },
+          );
+        });
+
+        return () => {
+          curtainCleanup?.();
+        };
       });
 
       responsiveCtx.add("(max-width: 900px)", () => {
         setupSkillsScrub(false);
       });
+
+      const contactSection = document.querySelector<HTMLElement>("#contact");
+      const contactParallax = document.querySelector<HTMLElement>(
+        "[data-contact-parallax]",
+      );
+      const contactHeading = document.querySelector<HTMLElement>(
+        "[data-contact-heading]",
+      );
+      const contactCta =
+        document.querySelector<HTMLElement>("[data-contact-cta]");
+      if (contactSection && contactParallax) {
+        gsap.fromTo(
+          contactParallax,
+          { yPercent: -8 },
+          {
+            yPercent: 8,
+            ease: "none",
+            scrollTrigger: {
+              trigger: contactSection,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          },
+        );
+      }
+      if (contactSection && contactHeading) {
+        gsap.fromTo(
+          contactHeading,
+          { y: 26, opacity: 0.45 },
+          {
+            y: 0,
+            opacity: 1,
+            ease: "power1.out",
+            scrollTrigger: {
+              trigger: contactSection,
+              start: "top 86%",
+              end: "center 62%",
+              scrub: true,
+            },
+          },
+        );
+      }
+      if (contactSection && contactCta) {
+        gsap.fromTo(
+          contactCta,
+          { scale: 0.88, rotation: -8 },
+          {
+            scale: 1,
+            rotation: 0,
+            ease: "power1.out",
+            scrollTrigger: {
+              trigger: contactSection,
+              start: "top 82%",
+              end: "center 58%",
+              scrub: true,
+            },
+          },
+        );
+      }
+
+      const footerEl = document.querySelector<HTMLElement>("footer");
+      const footerWord =
+        document.querySelector<HTMLElement>("[data-footer-word]");
+      if (footerEl && footerWord) {
+        gsap.fromTo(
+          footerWord,
+          { yPercent: 20, opacity: 0.3 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            ease: "power1.out",
+            scrollTrigger: {
+              trigger: footerEl,
+              start: "top 92%",
+              end: "bottom bottom",
+              scrub: true,
+            },
+          },
+        );
+      }
 
       return () => {
         activeLenis = undefined;
@@ -587,11 +914,95 @@ export default function MotionObserver() {
             ),
           );
         });
+
+      document
+        .querySelectorAll<HTMLElement>("[data-artwork-hover]")
+        .forEach((box) => {
+          pointerCleanups.push(
+            bindPointerDecay(
+              box,
+              (px, py, rect) => {
+                const pos = clampArtworkPill(px, py, rect.width, rect.height);
+                return [pos.x, pos.y];
+              },
+              (cx, cy) => {
+                if (cx === 0 && cy === 0) return;
+                box.style.setProperty("--pill-x", `${cx.toFixed(0)}px`);
+                box.style.setProperty("--pill-y", `${cy.toFixed(0)}px`);
+              },
+              false,
+            ),
+          );
+        });
+    }
+
+    // 4. Stat counter roll-up on first intersect + ResizeObserver for accordion reflows.
+    const statCleanups: Array<() => void> = [];
+    const statEls = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-stat-counter]"),
+    );
+    let statObserver: IntersectionObserver | undefined;
+    if (
+      !reducedMotion.matches &&
+      "IntersectionObserver" in window &&
+      statEls.length > 0
+    ) {
+      statObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target as HTMLElement;
+            statObserver?.unobserve(el);
+            const target = el.dataset.statCounter || el.textContent || "";
+            const start = Number(el.dataset.statStart || "0");
+            const duration = 850;
+            const t0 = performance.now();
+            let rafId = 0;
+
+            const tickCount = (now: number) => {
+              const raw = Math.min((now - t0) / duration, 1);
+              const eased = 1 - Math.pow(1 - raw, 3);
+              el.textContent = formatStatCounterValue(eased, target, start);
+              if (raw < 1) {
+                rafId = window.requestAnimationFrame(tickCount);
+              }
+            };
+            rafId = window.requestAnimationFrame(tickCount);
+            statCleanups.push(() => {
+              window.cancelAnimationFrame(rafId);
+              el.textContent = target;
+            });
+          });
+        },
+        { threshold: 0.35 },
+      );
+      statEls.forEach((el) => statObserver?.observe(el));
+    }
+
+    const mainEl = document.querySelector<HTMLElement>("main");
+    let resizeRaf = 0;
+    let lastMainHeight = mainEl?.scrollHeight ?? 0;
+    let mainResizeObserver: ResizeObserver | undefined;
+    if (mainEl && "ResizeObserver" in window) {
+      mainResizeObserver = new ResizeObserver(() => {
+        if (resizeRaf) window.cancelAnimationFrame(resizeRaf);
+        resizeRaf = window.requestAnimationFrame(() => {
+          resizeRaf = 0;
+          const nextHeight = mainEl.scrollHeight;
+          if (nextHeight !== lastMainHeight) {
+            lastMainHeight = nextHeight;
+            refreshMetrics();
+            ScrollTrigger.refresh();
+          }
+        });
+      });
+      mainResizeObserver.observe(mainEl);
     }
 
     const onReducedMotionChange = () => {
       if (reducedMotion.matches) {
         revealAllImmediately();
+        statCleanups.forEach((fn) => fn());
       }
       ScrollTrigger.refresh();
     };
@@ -600,6 +1011,7 @@ export default function MotionObserver() {
 
     return () => {
       window.cancelAnimationFrame(metricRaf);
+      if (resizeRaf) window.cancelAnimationFrame(resizeRaf);
       document.removeEventListener("click", onAnchorClick);
       window.removeEventListener("scroll", onNativeScroll);
       window.removeEventListener("resize", refreshMetrics);
@@ -608,9 +1020,12 @@ export default function MotionObserver() {
       revealObserver?.disconnect();
       navObserver?.disconnect();
       loopObserver?.disconnect();
+      statObserver?.disconnect();
+      mainResizeObserver?.disconnect();
       dialogObserver.disconnect();
       reducedMotion.removeEventListener("change", onReducedMotionChange);
       desktopQuery.removeEventListener("change", onLoadRefresh);
+      statCleanups.forEach((fn) => fn());
       pointerCleanups.forEach((fn) => fn());
       mm.revert();
       root.classList.remove("modal-open");
