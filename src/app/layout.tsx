@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
+
+const themeInitScript = `(function(){try{var t=localStorage.getItem("faizan-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t;}}catch(e){}})();`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://portfolio-seven-olive-11.vercel.app"),
+  metadataBase: new URL(getSiteUrl()),
   title: "Mohd Faizan Khan — Software Engineer",
   description:
     "Software engineering student building thoughtful systems, AI applications, and developer tools. Explore PulseCheck, SyncTone, InternIQ, and EnvGuard.",
@@ -35,8 +39,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link
           rel="preload"
           href="/media/fonts/space-grotesk.woff2"

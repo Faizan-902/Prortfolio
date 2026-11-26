@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://portfolio-seven-olive-11.vercel.app";
+  const baseUrl = getSiteUrl();
   const lastModified = new Date();
   return [
     {

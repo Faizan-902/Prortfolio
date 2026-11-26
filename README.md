@@ -27,4 +27,4 @@ npm start
 
 ## Deployment
 
-Connected to Vercel production: `https://portfolio-seven-olive-11.vercel.app/`
+Connected to Vercel production: `https://prortfolio-rho.vercel.app/`
