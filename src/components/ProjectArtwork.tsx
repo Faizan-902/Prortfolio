@@ -150,7 +150,12 @@ export function ProjectArtwork({ kind }: { kind: string }) {
         </p>
         <p className="text-[11px] text-[#93a3a1]">
           Ship code. Keep the surprises out.
-          <span>▍</span>
+          <span
+            data-loop-anim
+            className="ml-0.5 inline-block motion-safe:animate-[cursor-blink_1.2s_steps(2,end)_infinite]"
+          >
+            ▍
+          </span>
         </p>
       </div>
       <div className="absolute right-6 bottom-6 left-6 z-[3] flex justify-between gap-3 font-mono text-[10px]">

@@ -43,31 +43,56 @@ const skillArtColors = [
 export default function PortfolioExperience() {
   const [menu, setMenu] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const headerRef = useRef<HTMLElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
-  const didMountTheme = useRef(false);
 
   useEffect(() => {
-    if (!didMountTheme.current) {
-      didMountTheme.current = true;
-      return;
+    const saved = document.documentElement.dataset.theme;
+    if (saved === "light" || saved === "dark") {
+      setTheme(saved);
     }
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
+  }, []);
 
   function toggleTheme() {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try {
+        localStorage.setItem("faizan-theme", next);
+      } catch {
+        // Ignore storage quota / privacy mode errors
+      }
+      return next;
+    });
   }
 
   useEffect(() => {
     if (!menu) return;
-    const escape = (e: KeyboardEvent) => {
+    const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const onEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMenu(false);
         menuButton.current?.focus();
       }
     };
-    document.addEventListener("keydown", escape);
-    return () => document.removeEventListener("keydown", escape);
+    const onOutsidePointer = (e: PointerEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        setMenu(false);
+      }
+    };
+    const onViewportChange = () => {
+      if (desktopQuery.matches) setMenu(false);
+    };
+    document.addEventListener("keydown", onEscape);
+    document.addEventListener("pointerdown", onOutsidePointer, {
+      passive: true,
+    });
+    desktopQuery.addEventListener("change", onViewportChange);
+    return () => {
+      document.removeEventListener("keydown", onEscape);
+      document.removeEventListener("pointerdown", onOutsidePointer);
+      desktopQuery.removeEventListener("change", onViewportChange);
+    };
   }, [menu]);
 
   return (
@@ -86,7 +111,10 @@ export default function PortfolioExperience() {
         Skip to selected projects
       </a>
 
-      <header className="site-header group/header fixed top-3 right-0 left-0 z-50 px-[var(--spacing-gutter)] transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)] focus-within:translate-y-0 motion-reduce:transform-none [&.is-hidden]:-translate-y-[calc(100%+24px)]">
+      <header
+        ref={headerRef}
+        className="site-header group/header fixed top-3 right-0 left-0 z-50 px-[var(--spacing-gutter)] transition-transform duration-[var(--duration-base)] ease-[var(--ease-out)] focus-within:translate-y-0 motion-reduce:transform-none [&.is-hidden]:-translate-y-[calc(100%+24px)]"
+      >
         <div
           className={cn(
             "floating-nav mx-auto w-full max-w-[var(--container-max)] rounded-[var(--radius-md)] border border-border-subtle bg-nav shadow-card backdrop-blur-[var(--blur-sm)] transition-[background-color,border-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out)]",
@@ -461,7 +489,10 @@ export default function PortfolioExperience() {
           className="overflow-hidden border-b border-border-subtle bg-section-tint pt-3 pb-16"
           aria-hidden="true"
         >
-          <div className="flex w-max [animation:var(--animate-ticker)] items-center gap-8 font-display text-[clamp(3.75rem,9.5vw,10rem)] leading-none font-semibold tracking-[var(--tracking-tightest)] text-ink">
+          <div
+            data-loop-anim
+            className="flex w-max [animation:var(--animate-ticker)] items-center gap-8 font-display text-[clamp(3.75rem,9.5vw,10rem)] leading-none font-semibold tracking-[var(--tracking-tightest)] text-ink will-change-transform"
+          >
             THINK <b className="font-normal text-accent">+</b> BUILD{" "}
             <b className="font-normal text-accent">+</b> REFINE{" "}
             <b className="font-normal text-accent">+</b> IMPACT{" "}

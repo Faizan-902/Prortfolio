@@ -5,6 +5,81 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 
+function bindPointerDecay(
+  el: HTMLElement,
+  computeTarget: (nx: number, ny: number) => [number, number],
+  onFlush: (cx: number, cy: number, px: number, py: number) => void,
+  hasResetDecay: boolean,
+): () => void {
+  let raf = 0;
+  let rect: DOMRect | null = null;
+  let settling = false;
+  let px = 0.5;
+  let py = 0.5;
+  let targetX = 0;
+  let targetY = 0;
+  let currentX = 0;
+  let currentY = 0;
+
+  const step = () => {
+    raf = 0;
+    if (settling && hasResetDecay) {
+      currentX *= 0.82;
+      currentY *= 0.82;
+      if (Math.abs(currentX) < 0.01 && Math.abs(currentY) < 0.01) {
+        currentX = 0;
+        currentY = 0;
+        settling = false;
+      } else {
+        raf = window.requestAnimationFrame(step);
+      }
+    } else {
+      currentX = targetX;
+      currentY = targetY;
+    }
+    onFlush(currentX, currentY, px, py);
+  };
+
+  const schedule = () => {
+    if (!raf) raf = window.requestAnimationFrame(step);
+  };
+
+  const onEnter = () => {
+    rect = el.getBoundingClientRect();
+    settling = false;
+  };
+
+  const onMove = (e: PointerEvent) => {
+    if (!rect) rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    px = (e.clientX - rect.left) / rect.width;
+    py = (e.clientY - rect.top) / rect.height;
+    settling = false;
+    [targetX, targetY] = computeTarget(px, py);
+    schedule();
+  };
+
+  const onLeave = () => {
+    rect = null;
+    if (!hasResetDecay) return;
+    targetX = 0;
+    targetY = 0;
+    settling = true;
+    schedule();
+  };
+
+  el.addEventListener("pointerenter", onEnter, { passive: true });
+  el.addEventListener("pointermove", onMove, { passive: true });
+  el.addEventListener("pointerleave", onLeave, { passive: true });
+
+  return () => {
+    if (raf) window.cancelAnimationFrame(raf);
+    el.removeEventListener("pointerenter", onEnter);
+    el.removeEventListener("pointermove", onMove);
+    el.removeEventListener("pointerleave", onLeave);
+  };
+}
+
 function setupSkillsScrub(isDesktop: boolean) {
   const panels = gsap.utils.toArray<HTMLElement>("[data-skill-panel]");
   panels.forEach((panel, index) => {
@@ -462,125 +537,55 @@ export default function MotionObserver() {
     document.fonts?.ready.then(onLoadRefresh);
     window.addEventListener("load", onLoadRefresh);
 
-    // 120Hz zero-layout-read pointer interactions (rect cached on pointerenter).
+    // 120Hz zero-layout-read pointer interactions (rect cached on pointerenter, smooth leave decay).
     const pointerCleanups: Array<() => void> = [];
     if (!reducedMotion.matches && finePointer.matches) {
       document
         .querySelectorAll<HTMLElement>("[data-magnetic]")
         .forEach((el) => {
-          let raf = 0;
-          let rect: DOMRect | null = null;
-          let targetX = 0;
-          let targetY = 0;
-
-          const flush = () => {
-            raf = 0;
-            el.style.setProperty("--mx", `${targetX.toFixed(2)}px`);
-            el.style.setProperty("--my", `${targetY.toFixed(2)}px`);
-          };
-          const onEnter = () => {
-            rect = el.getBoundingClientRect();
-          };
-          const onMove = (e: PointerEvent) => {
-            if (!rect) rect = el.getBoundingClientRect();
-            targetX = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
-            targetY = ((e.clientY - rect.top) / rect.height - 0.5) * 10;
-            if (!raf) raf = window.requestAnimationFrame(flush);
-          };
-          const onLeave = () => {
-            rect = null;
-            targetX = 0;
-            targetY = 0;
-            if (!raf) raf = window.requestAnimationFrame(flush);
-          };
-          el.addEventListener("pointerenter", onEnter, { passive: true });
-          el.addEventListener("pointermove", onMove, { passive: true });
-          el.addEventListener("pointerleave", onLeave, { passive: true });
-          pointerCleanups.push(() => {
-            if (raf) window.cancelAnimationFrame(raf);
-            el.removeEventListener("pointerenter", onEnter);
-            el.removeEventListener("pointermove", onMove);
-            el.removeEventListener("pointerleave", onLeave);
-          });
+          pointerCleanups.push(
+            bindPointerDecay(
+              el,
+              (px, py) => [(px - 0.5) * 10, (py - 0.5) * 10],
+              (cx, cy) => {
+                el.style.setProperty("--mx", `${cx.toFixed(2)}px`);
+                el.style.setProperty("--my", `${cy.toFixed(2)}px`);
+              },
+              true,
+            ),
+          );
         });
 
       document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((card) => {
-        let raf = 0;
-        let rect: DOMRect | null = null;
-        let px = 0.5;
-        let py = 0.5;
-        let rx = 0;
-        let ry = 0;
-
-        const flush = () => {
-          raf = 0;
-          card.style.setProperty("--glow-x", `${(px * 100).toFixed(1)}%`);
-          card.style.setProperty("--glow-y", `${(py * 100).toFixed(1)}%`);
-          card.style.setProperty("--tilt-x", `${rx.toFixed(2)}deg`);
-          card.style.setProperty("--tilt-y", `${ry.toFixed(2)}deg`);
-        };
-        const onEnter = () => {
-          rect = card.getBoundingClientRect();
-        };
-        const onMove = (e: PointerEvent) => {
-          if (!rect) rect = card.getBoundingClientRect();
-          px = (e.clientX - rect.left) / rect.width;
-          py = (e.clientY - rect.top) / rect.height;
-          rx = (0.5 - py) * 3.5;
-          ry = (px - 0.5) * 3.5;
-          if (!raf) raf = window.requestAnimationFrame(flush);
-        };
-        const onLeave = () => {
-          rect = null;
-          rx = 0;
-          ry = 0;
-          if (!raf) raf = window.requestAnimationFrame(flush);
-        };
-        card.addEventListener("pointerenter", onEnter, { passive: true });
-        card.addEventListener("pointermove", onMove, { passive: true });
-        card.addEventListener("pointerleave", onLeave, { passive: true });
-        pointerCleanups.push(() => {
-          if (raf) window.cancelAnimationFrame(raf);
-          card.removeEventListener("pointerenter", onEnter);
-          card.removeEventListener("pointermove", onMove);
-          card.removeEventListener("pointerleave", onLeave);
-        });
+        pointerCleanups.push(
+          bindPointerDecay(
+            card,
+            (px, py) => [(0.5 - py) * 3.5, (px - 0.5) * 3.5],
+            (rx, ry, px, py) => {
+              card.style.setProperty("--glow-x", `${(px * 100).toFixed(1)}%`);
+              card.style.setProperty("--glow-y", `${(py * 100).toFixed(1)}%`);
+              card.style.setProperty("--tilt-x", `${rx.toFixed(2)}deg`);
+              card.style.setProperty("--tilt-y", `${ry.toFixed(2)}deg`);
+            },
+            true,
+          ),
+        );
       });
 
       document
         .querySelectorAll<HTMLElement>("[data-spotlight]")
         .forEach((card) => {
-          let raf = 0;
-          let rect: DOMRect | null = null;
-          let px = 0.5;
-          let py = 0.5;
-
-          const flush = () => {
-            raf = 0;
-            card.style.setProperty("--glow-x", `${(px * 100).toFixed(1)}%`);
-            card.style.setProperty("--glow-y", `${(py * 100).toFixed(1)}%`);
-          };
-          const onEnter = () => {
-            rect = card.getBoundingClientRect();
-          };
-          const onMove = (e: PointerEvent) => {
-            if (!rect) rect = card.getBoundingClientRect();
-            px = (e.clientX - rect.left) / rect.width;
-            py = (e.clientY - rect.top) / rect.height;
-            if (!raf) raf = window.requestAnimationFrame(flush);
-          };
-          const onLeave = () => {
-            rect = null;
-          };
-          card.addEventListener("pointerenter", onEnter, { passive: true });
-          card.addEventListener("pointermove", onMove, { passive: true });
-          card.addEventListener("pointerleave", onLeave, { passive: true });
-          pointerCleanups.push(() => {
-            if (raf) window.cancelAnimationFrame(raf);
-            card.removeEventListener("pointerenter", onEnter);
-            card.removeEventListener("pointermove", onMove);
-            card.removeEventListener("pointerleave", onLeave);
-          });
+          pointerCleanups.push(
+            bindPointerDecay(
+              card,
+              () => [0, 0],
+              (_cx, _cy, px, py) => {
+                card.style.setProperty("--glow-x", `${(px * 100).toFixed(1)}%`);
+                card.style.setProperty("--glow-y", `${(py * 100).toFixed(1)}%`);
+              },
+              false,
+            ),
+          );
         });
     }
 

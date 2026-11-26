@@ -401,6 +401,15 @@
       transform: translate3d(0, 0, 0);
     }
   }
+  @keyframes cursor-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.15;
+    }
+  }
 
   .bg-fallback-gradient {
     background: var(--fallback-gradient);
@@ -510,5 +519,23 @@
   }
   .underline-sweep:hover::after {
     transform: scaleX(1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    dialog[open] {
+      transition:
+        opacity var(--duration-base) var(--ease-out),
+        transform var(--duration-base) var(--ease-out);
+      @starting-style {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0) scale(0.985);
+      }
+    }
+    dialog[open]::backdrop {
+      transition: opacity var(--duration-base) var(--ease-out);
+      @starting-style {
+        opacity: 0;
+      }
+    }
   }
 }
